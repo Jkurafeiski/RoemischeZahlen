@@ -15,24 +15,15 @@ namespace RoemischeZahlen
             Console.WriteLine("Schreibe mir eine Römische Zahl");
             string input = Console.ReadLine();
 
-            bool checker = new RomanLengthCheck().LengthCheckerBool(input);
-            if (checker)
+            try
             {
-                try
-                {
-                    var Output = new Roman().RomanMath(input);
-                    Console.WriteLine(Output);
-                }
-                catch (NoRomanNumberException ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
+                var Output = new Roman().RomanMath(input);
+                Console.WriteLine(Output);
             }
-            else
+            catch (NoRomanNumberException ex)
             {
-                Console.WriteLine("Ups da ist was Schief gelaufen versuche es erneut !");
+                Console.WriteLine(ex.Message);
             }
-
         }
     }
 }

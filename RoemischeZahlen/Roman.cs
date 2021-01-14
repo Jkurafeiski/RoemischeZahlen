@@ -1,28 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace RoemischeZahlen
 {
-    class Roman
+    public class Roman
     {
-        public static readonly Dictionary<char, int> RomanDictionary;
-        public static readonly Dictionary<string, int> RomanSpecialDictionary;
-        static Roman()
+        private readonly Dictionary<string, int> RomanDictionary;
+        private readonly Dictionary<string, int> RomanSpecialDictionary;
+        public Roman()
         {
-
-            RomanDictionary = new Dictionary<char, int>()
+            var comparer = StringComparer.OrdinalIgnoreCase;
+            RomanDictionary = new Dictionary<string, int>(comparer)
             {
-                {'I', 1},
-                {'V', 5},
-                {'X', 10},
-                {'L', 50},
-                {'C', 100},
-                {'D', 500},
-                {'M', 1000},
+                {"I", 1},
+                {"V", 5},
+                {"X", 10},
+                {"L", 50},
+                {"C", 100},
+                {"D", 500},
+                {"M", 1000},
             };
 
-            RomanSpecialDictionary = new Dictionary<string, int>()
+            RomanSpecialDictionary = new Dictionary<string, int>(comparer)
             {
                 {"IV", 4},
                 {"IX", 9},
@@ -35,24 +34,36 @@ namespace RoemischeZahlen
 
         public int RomanMath(string romanInput)
         {
+            romanInput = romanInput.ToUpper();
+            if (!LengthCheckerBool(romanInput))
+            {
+                throw new NoRomanNumberException("Zu viele gleiche Zeichen!");
+            }
+
+            var nextRoman = 'I';
             var total = 0;
             for (int i = 0; i < romanInput.Length; i++)
             {
+                if (i < romanInput.Length-1)
+                {
+                    nextRoman = romanInput[i + 1];
+                }
                 var currentRoman = romanInput[i];
+                string nextString = Convert.ToString(nextRoman);
+                string currentString = Convert.ToString(currentRoman);
                 int current;
                 if (i == romanInput.Length - 1)
                 {
-                    current = Current(currentRoman);
+                    current = Current(currentString, nextString);
                     total += current;
                     break;
                 }
-                var nextRoman = romanInput[i+1];
-                current = Current(currentRoman);
-                var next = RomanDictionary[nextRoman];
+                current = Current(currentString, nextString);
+                var next = RomanDictionary[nextString];
 
                 if (next > current)
                 {
-                    int romanSpecial = new RomanNumberChecker().RomanNumberConverter(currentRoman, nextRoman);
+                    var romanSpecial = RomanNumberConverter(currentRoman, nextRoman);
 
                     total += romanSpecial;
                     i++;
@@ -66,22 +77,53 @@ namespace RoemischeZahlen
             return total;
         }
 
-        private int Current(char currentRoman)
+        private int Current(string currentRoman, string nextRoman)
         {
-            if (!IsRoman(currentRoman))
+            if (!IsRoman(currentRoman) || !IsRoman(nextRoman))
             {
                 throw new NoRomanNumberException("Das ist keine römische Zahl!");
             }
-
-            var current = RomanDictionary[currentRoman];
+            var current = RomanDictionary[Convert.ToString(currentRoman)];
             return current;
         }
 
-        public bool IsRoman(char isRoman)
+        private bool IsRoman(string isRoman)
         {
             return RomanDictionary.TryGetValue(isRoman, out _);
         }
 
-    }
+        private int RomanNumberConverter(char currentRoman, char nextRoman)
+        {
+            string key = currentRoman.ToString() + nextRoman.ToString();
+            if (RomanSpecialDictionary.TryGetValue(key, out var romanExOut))
+            {
+                return romanExOut;
+            }
+            else
+            {
+                return 0;
+            }
+        }
 
+        private bool LengthCheckerBool(string input)
+        {
+            return RomanLengthChecker(input);
+        }
+
+        private bool RomanLengthChecker(string romanLengthChecker)
+        {
+            if (romanLengthChecker.Contains("IIII") || romanLengthChecker.Contains("XXXX") || romanLengthChecker.Contains("CCCC") || romanLengthChecker.Contains("VV") ||
+                romanLengthChecker.Contains("LL") || romanLengthChecker.Contains("DD") || romanLengthChecker.Contains("IIV") || romanLengthChecker.Contains("IIX") ||
+                romanLengthChecker.Contains("IIC") || romanLengthChecker.Contains("IIL") || romanLengthChecker.Contains("IID") || romanLengthChecker.Contains("IIM") ||
+                romanLengthChecker.Contains("XXC") || romanLengthChecker.Contains("XXL") || romanLengthChecker.Contains("XXD") || romanLengthChecker.Contains("XXM") ||
+                romanLengthChecker.Contains("CCM"))
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+    }
 }
